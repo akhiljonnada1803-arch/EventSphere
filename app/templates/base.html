@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EventSpheres - Discover. Register. Experience.{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            bg: '#0f172a',
+                            card: '#111827',
+                            accent: '#6366f1',
+                            text: '#e5e7eb',
+                            muted: '#9ca3af'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-brand-bg text-brand-text font-sans antialiased flex flex-col min-h-screen selection:bg-brand-accent selection:text-white">
+    <nav class="glass-nav fixed w-full z-50 top-0 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <a href="{{ url_for('events.home') }}" class="flex items-center gap-2 group">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold group-hover:scale-105 transition-transform">
+                            E
+                        </div>
+                        <span class="text-xl font-bold text-white tracking-tight">EventSpheres</span>
+                    </a>
+                </div>
+                
+                <div class="flex items-center space-x-6">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.role in ['organizer', 'admin'] %}
+                            <a href="{{ url_for('events.create') }}" class="hidden md:flex text-brand-text hover:text-white transition-colors text-sm font-medium items-center gap-1.5"><i class="fa-solid fa-plus text-brand-accent"></i> Create</a>
+                            <a href="{{ url_for('analytics.dashboard') }}" class="hidden md:flex text-brand-text hover:text-white transition-colors text-sm font-medium items-center gap-1.5"><i class="fa-solid fa-chart-line text-brand-accent"></i> Dashboard</a>
+                        {% endif %}
+                        <a href="{{ url_for('registrations.my_tickets') }}" class="text-brand-text hover:text-white transition-colors text-sm font-medium items-center gap-1.5 hidden md:flex"><i class="fa-solid fa-ticket text-brand-accent"></i> My Tickets</a>
+                        
+                        <div class="relative group cursor-pointer ml-2">
+                            <div class="flex items-center space-x-2 bg-brand-card/50 border border-white/10 rounded-full pl-3 pr-1 py-1 hover:bg-brand-card transition-colors">
+                                <span class="text-sm font-medium text-white">{{ current_user.name.split(' ')[0] }}</span>
+                                <div class="h-7 w-7 rounded-full bg-gradient-to-r from-brand-accent to-purple-500 flex items-center justify-center text-white text-xs font-bold shadow-inner">
+                                    {{ current_user.name[0].upper() }}
+                                </div>
+                            </div>
+                            <div class="absolute right-0 mt-2 w-48 bg-brand-card border border-white/10 rounded-xl shadow-2xl py-2 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right">
+                                <!-- Mobile Links visible only in dropdown -->
+                                <div class="md:hidden block border-b border-white/5 mb-1 pb-1">
+                                    {% if current_user.role in ['organizer', 'admin'] %}
+                                    <a href="{{ url_for('events.create') }}" class="block px-4 py-2 text-sm text-brand-text hover:text-white hover:bg-white/5 transition-colors">Create Event</a>
+                                    <a href="{{ url_for('analytics.dashboard') }}" class="block px-4 py-2 text-sm text-brand-text hover:text-white hover:bg-white/5 transition-colors">Dashboard</a>
+                                    {% endif %}
+                                    <a href="{{ url_for('registrations.my_tickets') }}" class="block px-4 py-2 text-sm text-brand-text hover:text-white hover:bg-white/5 transition-colors">My Tickets</a>
+                                </div>
+                                <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>Sign out</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="text-brand-text hover:text-white transition-colors text-sm font-medium">Login</a>
+                        <a href="{{ url_for('auth.register') }}" class="bg-brand-accent text-white hover:bg-indigo-400 transition-colors px-4 py-2 rounded-full text-sm font-medium shadow-lg shadow-brand-accent/20">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-8 space-y-2">
+                    {% for category, message in messages %}
+                        <div class="flex items-center p-4 rounded-xl shadow-lg border {% if category == 'error' %}bg-red-900/20 border-red-500/30 text-red-200{% elif category == 'success' %}bg-green-900/20 border-green-500/30 text-green-200{% else %}bg-blue-900/20 border-blue-500/30 text-blue-200{% endif %} animate-fade-in-down">
+                            {% if category == 'error' %}<i class="fa-solid fa-circle-exclamation mr-3 text-red-400"></i>{% endif %}
+                            {% if category == 'success' %}<i class="fa-solid fa-circle-check mr-3 text-green-400"></i>{% endif %}
+                            {% if category == 'info' %}<i class="fa-solid fa-circle-info mr-3 text-blue-400"></i>{% endif %}
+                            <p class="text-sm font-medium">{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-brand-bg border-t border-white/5 mt-auto">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
+            <div class="flex items-center gap-2 mb-4 opacity-50">
+                <div class="w-6 h-6 rounded border border-white/20 flex items-center justify-center text-xs font-bold text-white">E</div>
+                <span class="text-lg font-bold text-white tracking-tight">EventSpheres</span>
+            </div>
+            <p class="text-center text-sm text-brand-muted font-medium mb-1">
+                Discover. Register. Experience.
+            </p>
+            <p class="text-center text-xs text-brand-muted/50">
+                &copy; {{ current_year|default('2026') }} EventSpheres. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    <style>
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down {
+            animation: fadeInDown 0.4s ease-out forwards;
+        }
+    </style>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

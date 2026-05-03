@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - EventSpheres{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center py-12">
+    <div class="max-w-md w-full bg-brand-card rounded-[2rem] shadow-2xl overflow-hidden border border-white/5 relative">
+        <!-- Abstract Decoration -->
+        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-brand-accent/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl"></div>
+        
+        <div class="p-8 relative z-10">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
+                    <i class="fa-solid fa-lock text-brand-accent text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white tracking-tight">Secure Checkout</h2>
+                <p class="text-brand-muted text-sm mt-1">Complete your registration</p>
+            </div>
+            
+            <div class="bg-brand-bg/50 rounded-2xl p-6 border border-white/5 mb-8">
+                <div class="flex items-center gap-4 mb-6">
+                    {% if event.poster_url %}
+                    <img src="{{ url_for('static', filename=event.poster_url) }}" alt="{{ event.title }}" class="h-16 w-16 object-cover rounded-xl shadow-lg">
+                    {% else %}
+                    <div class="h-16 w-16 bg-white/5 rounded-xl flex items-center justify-center text-white/50 border border-white/10">
+                        <i class="fa-solid fa-calendar text-xl"></i>
+                    </div>
+                    {% endif %}
+                    <div class="flex-1">
+                        <h4 class="text-white font-bold line-clamp-1">{{ event.title }}</h4>
+                        <p class="text-brand-muted text-xs flex items-center mt-1">
+                            <i class="fa-regular fa-calendar mr-1.5"></i> {{ event.starts_at.strftime('%b %d, %Y') }}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="border-t border-white/10 pt-4 border-dashed">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-brand-muted text-sm">Ticket Price</span>
+                        <span class="text-white">₹{{ "%.0f"|format(event.fee) }}</span>
+                    </div>
+                    {% if group_size > 1 %}
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-brand-muted text-sm">Group Size</span>
+                        <span class="text-white">{{ group_size }} Members</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-brand-muted text-sm">Taxes & Fees</span>
+                        <span class="text-green-400 text-sm">Included</span>
+                    </div>
+                    <div class="flex justify-between items-center border-t border-white/10 pt-4 mt-2">
+                        <span class="text-white font-bold">Total Amount</span>
+                        <span class="text-2xl font-bold text-brand-accent">₹{{ "%.0f"|format(total_fee) }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <form action="{{ url_for('payments.verify') }}" method="POST" id="payment-form">
+                <input type="hidden" name="event_id" value="{{ event.id }}">
+                <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+                <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+                <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+                
+                <button type="button" id="rzp-button1" class="w-full flex items-center justify-center py-4 px-6 rounded-2xl font-bold text-white bg-brand-accent hover:bg-indigo-500 transition-all shadow-lg shadow-brand-accent/30 hover:-translate-y-1 gap-2 group disabled:opacity-50 disabled:cursor-wait">
+                    <span id="btn-text">Pay Now</span>
+                    <i id="btn-icon" class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    <i id="btn-spinner" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <a href="{{ url_for('events.detail', event_id=event.id) }}" class="text-sm font-medium text-brand-muted hover:text-white transition-colors">
+                    Cancel & Return
+                </a>
+            </div>
+            
+            <div class="mt-8 flex items-center justify-center gap-2 opacity-50">
+                <i class="fa-solid fa-shield-halved text-xs text-white"></i>
+                <span class="text-[10px] uppercase tracking-widest text-white font-semibold">Secured by Razorpay</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    var options = {
+        "key": "{{ key_id }}",
+        "amount": "{{ amount }}",
+        "currency": "INR",
+        "name": "EventSpheres",
+        "description": "Registration for {{ event.title }}",
+        "order_id": "{{ order_id }}",
+        "handler": function (response){
+            document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+            document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+            document.getElementById('razorpay_signature').value = response.razorpay_signature;
+            document.getElementById('payment-form').submit();
+        },
+        "prefill": {
+            "name": "{{ current_user.name }}",
+            "email": "{{ current_user.email }}"
+        },
+        "theme": {
+            "color": "#6366f1"
+        }
+    };
+    var rzp1 = new Razorpay(options);
+    rzp1.on('payment.failed', function (response){
+        setLoading(false);
+        alert("Payment failed! " + response.error.description);
+    });
+    
+    document.getElementById('rzp-button1').onclick = function(e){
+        setLoading(true);
+        rzp1.open();
+        e.preventDefault();
+    }
+
+    function setLoading(isLoading) {
+        const btn = document.getElementById('rzp-button1');
+        const text = document.getElementById('btn-text');
+        const icon = document.getElementById('btn-icon');
+        const spinner = document.getElementById('btn-spinner');
+        
+        if (isLoading) {
+            btn.disabled = true;
+            text.innerText = 'Processing...';
+            icon.classList.add('hidden');
+            spinner.classList.remove('hidden');
+        } else {
+            btn.disabled = false;
+            text.innerText = 'Pay Now';
+            icon.classList.remove('hidden');
+            spinner.classList.add('hidden');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - {{ event.title }} - EventSpheres{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto pb-12">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+        <div>
+            <a href="{{ url_for('analytics.dashboard') }}" class="text-sm text-brand-muted hover:text-white transition-colors mb-2 inline-block">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Back to Dashboard
+            </a>
+            <h1 class="text-3xl font-extrabold text-white">Analytics: {{ event.title }}</h1>
+            <p class="text-brand-muted mt-2">Real-time statistics and overview</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <div class="flex rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                <a href="{{ url_for('analytics.export_attendees', event_id=event.id, type='registered', format='csv') }}" class="px-4 py-2 bg-brand-card hover:bg-white/10 text-white text-xs font-bold border-r border-white/10 transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-file-csv text-green-400"></i> Export CSV
+                </a>
+                <a href="{{ url_for('analytics.export_attendees', event_id=event.id, type='registered', format='excel') }}" class="px-4 py-2 bg-brand-card hover:bg-white/10 text-white text-xs font-bold transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-file-excel text-blue-400"></i> Export Excel
+                </a>
+            </div>
+            <a href="{{ url_for('events.attendees', event_id=event.id) }}" class="px-5 py-2.5 bg-brand-accent text-white rounded-xl hover:bg-indigo-500 transition-all font-bold text-sm flex items-center gap-2 shadow-lg shadow-brand-accent/20">
+                <i class="fa-solid fa-users"></i> Attendee List
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
+        <div class="bg-brand-card rounded-3xl p-6 border border-white/5 shadow-xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700"></div>
+            <div class="flex items-start justify-between relative z-10">
+                <div>
+                    <p class="text-xs font-medium text-brand-muted mb-1 uppercase tracking-wider">Registrations</p>
+                    <h3 class="text-4xl font-extrabold text-white tracking-tight">{{ stats.total_registrations }}</h3>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 border border-blue-500/20">
+                    <i class="fa-solid fa-ticket text-lg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-brand-card rounded-3xl p-6 border border-white/5 shadow-xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700"></div>
+            <div class="flex items-start justify-between relative z-10">
+                <div>
+                    <p class="text-xs font-medium text-brand-muted mb-1 uppercase tracking-wider">Attended</p>
+                    <h3 class="text-4xl font-extrabold text-white tracking-tight">{{ stats.attendance_count }}</h3>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center text-green-400 border border-green-500/20">
+                    <i class="fa-solid fa-check-circle text-lg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-brand-card rounded-3xl p-6 border border-white/5 shadow-xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700"></div>
+            <div class="flex items-start justify-between relative z-10">
+                <div>
+                    <p class="text-xs font-medium text-brand-muted mb-1 uppercase tracking-wider">Attendance %</p>
+                    <h3 class="text-4xl font-extrabold text-white tracking-tight">{{ stats.attendance_percentage }}%</h3>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center text-yellow-400 border border-yellow-500/20">
+                    <i class="fa-solid fa-percent text-lg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-brand-card rounded-3xl p-6 border border-white/5 shadow-xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700"></div>
+            <div class="flex items-start justify-between relative z-10">
+                <div>
+                    <p class="text-xs font-medium text-brand-muted mb-1 uppercase tracking-wider">Remaining</p>
+                    <h3 class="text-4xl font-extrabold text-white tracking-tight">{{ stats.remaining_seats }}</h3>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 border border-purple-500/20">
+                    <i class="fa-solid fa-chair text-lg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-brand-card rounded-3xl p-6 border border-white/5 shadow-xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-brand-accent/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700"></div>
+            <div class="flex items-start justify-between relative z-10">
+                <div>
+                    <p class="text-xs font-medium text-brand-muted mb-1 uppercase tracking-wider">Revenue</p>
+                    <h3 class="text-4xl font-extrabold text-white tracking-tight">₹{{ "%.0f"|format(stats.revenue) }}</h3>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-brand-accent/20 flex items-center justify-center text-brand-accent border border-brand-accent/20">
+                    <i class="fa-solid fa-indian-rupee-sign text-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts & Insights -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 bg-brand-card rounded-3xl p-8 border border-white/5 shadow-2xl">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-xl font-bold text-white">Registration Trend</h3>
+                <span class="text-xs text-brand-muted font-medium bg-white/5 px-3 py-1 rounded-full border border-white/5">Last 7 Days</span>
+            </div>
+            <div class="h-80 w-full">
+                <canvas id="registrationChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-brand-card rounded-3xl p-8 border border-white/5 shadow-2xl">
+            <h3 class="text-xl font-bold text-white mb-6">Attendance Overview</h3>
+            <div class="h-64 flex items-center justify-center relative">
+                <canvas id="attendanceChart"></canvas>
+            </div>
+            <div class="mt-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-brand-accent"></div>
+                        <span class="text-sm text-brand-muted">Attended</span>
+                    </div>
+                    <span class="text-sm text-white font-bold">{{ stats.attendance_count }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-white/10"></div>
+                        <span class="text-sm text-brand-muted">Absent / Pending</span>
+                    </div>
+                    <span class="text-sm text-white font-bold">{{ stats.total_registrations - stats.attendance_count }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Registration Chart (Line)
+    const regCtx = document.getElementById('registrationChart').getContext('2d');
+    new Chart(regCtx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Registrations',
+                data: [12, 19, 3, 5, 2, 3, 20], // Mock data - would be dynamic
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3,
+                pointBackgroundColor: '#6366f1',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#94a3b8' }
+                }
+            }
+        }
+    });
+
+    // Attendance Chart (Doughnut)
+    const attCtx = document.getElementById('attendanceChart').getContext('2d');
+    new Chart(attCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Attended', 'Absent'],
+            datasets: [{
+                data: [{{ stats.attendance_count }}, {{ stats.total_registrations - stats.attendance_count }}],
+                backgroundColor: ['#6366f1', 'rgba(255, 255, 255, 0.05)'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>
+{% endblock %}

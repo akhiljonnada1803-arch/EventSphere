@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hogwarts Hackathon - Registration</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Crimson+Text:ital,wght@0,400;1,400&family=Pinyon+Script&family=Libre+Barcode+128+Text&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- THEME VARIABLES --- */
+        :root {
+            --gold: #d4af37;
+            --bg-dark: #0b0b0b;
+            --ink-color: #2c1b18;
+            --parchment-base: #f3e9d2; 
+            
+            /* Ticket Colors */
+            --ticket-paper: #fdf5e6;
+            --ticket-ink: #3e2723;
+            --ticket-gold: #b8860b;
+        }
+
+        /* --- GLOBAL CURSOR HIDE (Desktop Only) --- */
+        @media (min-width: 992px) {
+            *, *::before, *::after, 
+            html, body, a, button, input, select, textarea, label, .btn, .form-select,
+            .file-upload-wrapper, .btn-file-custom, .custom-select-trigger, .custom-option {
+                cursor: none !important;
+            }
+            
+            /* FORCE HIDE SYSTEM CURSOR ON FILE INPUT */
+            input[type="file"] { cursor: none !important; }
+            
+            #wand { display: flex !important; }
+        }
+
+        html, body {
+            width: 100%; margin: 0; padding: 0;
+            overflow-x: hidden; 
+            background-color: var(--bg-dark);
+            /* Disable text selection */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* --- CONTENT WRAPPER --- */
+        #site-wrapper {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            background: radial-gradient(circle at center, #1f1f35 0%, #000000 100%), url('https://www.transparenttextures.com/patterns/stardust.png');
+            background-attachment: fixed;
+            transition: transform 0.2s ease;
+            will-change: transform;
+            display: flex; flex-direction: column;
+        }
+
+        /* --- LIGHTING --- */
+        #ambient-light {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 9990;
+            background: radial-gradient(circle 350px at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.02) 0%, rgba(0, 0, 0, 0.1) 30%, rgba(0, 0, 0, 0.85) 100%);
+            transition: opacity 1s ease; opacity: 0;
+        }
+        body.magic-on #ambient-light { opacity: 1; }
+
+        /* --- WAND --- */
+        #wand { 
+            position: fixed; top: 0; left: 0; 
+            width: 50px; height: auto; 
+            pointer-events: none; z-index: 20005; 
+            will-change: transform; transform-origin: top left; 
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.9)) drop-shadow(0 0 8px rgba(212, 175, 55, 0.6));
+            display: none;
+            animation: wandGlow 2s ease-in-out infinite;
+        }
+        #wand img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        @keyframes wandGlow {
+            0%, 100% { filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.9)) drop-shadow(0 0 8px rgba(212, 175, 55, 0.6)); }
+            50% { filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.9)) drop-shadow(0 0 15px rgba(212, 175, 55, 0.8)) drop-shadow(0 0 20px rgba(255, 255, 100, 0.4)); }
+        }
+
+        .cursor-trail {
+            position: fixed; width: 3px; height: 3px; background: var(--gold); border-radius: 50%; pointer-events: none; z-index: 20004;
+            animation: fade-trail 0.5s linear forwards; box-shadow: 0 0 5px var(--gold); display: none;
+        }
+        @media (min-width: 992px) { .cursor-trail { display: block; } }
+        @keyframes fade-trail { 0% { opacity: 0.8; transform: scale(1); } 100% { opacity: 0; transform: scale(0.2) translate(0, 10px); } }
+
+        /* --- FORM STYLES --- */
+        .registration-section { padding: 60px 20px; flex-grow: 1; display: flex; justify-content: center; align-items: center; }
+        
+        .parchment-form {
+            position: relative; width: 100%; max-width: 900px;
+            background-color: var(--parchment-base);
+            background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
+            padding: 60px 40px; border: 2px solid var(--border-color); border-radius: 4px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); filter: url(#wrinkle-paper) contrast(1.05); z-index: 5;
+        }
+
+        .form-header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid var(--ink-color); padding-bottom: 20px; }
+        .form-header h2 { font-family: 'Cinzel Decorative'; color: var(--ink-color); font-size: 2.5rem; }
+        .section-title { font-family: 'Cinzel Decorative'; color: #5d4037; font-size: 1.4rem; margin-top: 30px; margin-bottom: 15px; border-bottom: 1px solid rgba(93, 64, 55, 0.3); }
+        
+        .magic-input {
+            width: 100%; background: transparent; border: none; border-bottom: 2px solid rgba(44, 27, 24, 0.3);
+            font-family: 'Cinzel Decorative', cursive; font-weight: 700; font-size: 1rem; color: var(--ink-color); padding: 8px 5px; transition: 0.3s; border-radius: 0;
+        }
+        .magic-input:focus { outline: none; border-bottom: 2px solid var(--gold); background: rgba(212, 175, 55, 0.05); }
+        .magic-input:invalid { border-bottom-color: #c62828; }
+        .validation-message {
+            display: block;
+            color: #c62828;
+            font-family: 'Crimson Text', serif;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        /* --- DROPDOWN CSS --- */
+        #houseSelect { z-index: 100 !important; }
+        #teamSizeSelect { z-index: 50 !important; }
+
+        .custom-select-wrapper { position: relative; user-select: none; width: 100%; }
+        
+        .custom-select-trigger { 
+            position: relative; display: flex; justify-content: space-between; align-items: center; width: 100%; 
+            padding: 10px 15px; font-family: 'Cinzel Decorative', serif; font-weight: 700; 
+            font-size: 1rem; color: var(--ink-color); border-bottom: 2px solid rgba(44, 27, 24, 0.3); 
+            background: transparent; transition: 0.3s; cursor: pointer; 
+        }
+        .custom-select-trigger:after { content: '▼'; font-size: 0.8rem; color: var(--ink-color); }
+        
+        .custom-options { 
+            position: absolute; top: 100%; left: 0; right: 0; 
+            background-color: #f3e9d2 !important; /* Solid Background */
+            background-image: none !important;
+            border: 2px solid #3e2723; border-top: none; 
+            z-index: 9999; 
+            opacity: 0; visibility: hidden; 
+            max-height: 0; overflow: hidden; 
+            transform: scaleY(0); transform-origin: top; 
+            transition: all 0.3s ease-in-out; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.9); 
+        }
+        
+        @media (min-width: 992px) { 
+            .custom-select-wrapper:hover .custom-options { opacity: 1 !important; visibility: visible; max-height: 300px; transform: scaleY(1); } 
+        }
+        .custom-select-wrapper.open .custom-options { opacity: 1 !important; visibility: visible; max-height: 300px; transform: scaleY(1); }
+        
+        .custom-option { 
+            padding: 12px 15px; display: block; 
+            font-family: 'Cinzel Decorative', cursive; font-weight: 700; color: var(--ink-color); 
+            transition: 0.2s; border-bottom: 1px dashed rgba(62, 39, 35, 0.2); 
+            cursor: pointer; background-color: #f3e9d2 !important; 
+        }
+        .custom-option:hover { background-color: rgba(212, 175, 55, 0.2) !important; color: #000; padding-left: 25px; }
+
+        /* File Input */
+        .file-upload-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; margin-top: 5px; }
+        .file-upload-wrapper input[type=file] { 
+            font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; 
+            z-index: 2; cursor: none !important; 
+        }
+        .btn-file-custom { background: transparent; border: 2px dashed var(--ink-color); color: var(--ink-color); padding: 10px; width: 100%; text-align: center; font-family: 'Cinzel Decorative'; font-weight: 700; transition: 0.3s; display: block; position: relative; z-index: 1; }
+        .file-upload-wrapper:hover .btn-file-custom { background: rgba(212, 175, 55, 0.1); border-color: var(--gold); color: #000; }
+
+        .magic-label { font-family: 'Cinzel Decorative'; color: #3e2723; font-weight: bold; font-size: 0.9rem; margin-bottom: 2px; display: block; }
+        .btn-submit { width: 100%; margin-top: 40px; padding: 15px; background: transparent; border: 2px solid var(--ink-color); color: var(--ink-color); font-family: 'Cinzel Decorative'; font-size: 1.5rem; transition: 0.3s; cursor: pointer; }
+        .btn-submit:hover { background: var(--ink-color); color: var(--parchment-base); box-shadow: 0 0 15px rgba(44, 27, 24, 0.5); }
+
+        /* Download QR Button Hover Effect */
+        #downloadQRBtn:hover {
+            background: #000;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(44, 27, 24, 0.5);
+        }
+
+        /* Terms and Conditions Modal */
+        .terms-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        .terms-modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .terms-modal-content {
+            background-color: var(--parchment-base);
+            background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
+            padding: 40px;
+            position: relative;
+            border: 5px double var(--ink-color);
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .terms-modal-overlay.active .terms-modal-content {
+            transform: scale(1);
+        }
+        .terms-modal-close {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 40px;
+            height: 40px;
+            background: #7f0000;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: 0.3s;
+            font-size: 1.2rem;
+        }
+        .terms-modal-close:hover {
+            transform: scale(1.1);
+            background: #900;
+        }
+        .terms-modal-title {
+            font-family: 'Cinzel Decorative';
+            color: var(--ink-color);
+            font-size: 1.8rem;
+            text-align: center;
+            border-bottom: 2px solid var(--ink-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .terms-modal-body {
+            font-family: 'Crimson Text';
+            color: var(--ink-color);
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        .terms-modal-body h4 {
+            font-family: 'Cinzel Decorative';
+            color: var(--ink-color);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        .terms-modal-body ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .terms-modal-body li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        .terms-modal-body li:before {
+            content: "⚡";
+            position: absolute;
+            left: 0;
+            color: var(--gold);
+        }
+        .terms-modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .btn-accept-terms {
+            padding: 12px 30px;
+            background: var(--ink-color);
+            color: var(--parchment-base);
+            border: 2px solid var(--ink-color);
+            font-family: 'Cinzel Decorative';
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-accept-terms:hover {
+            background: #000;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(44, 27, 24, 0.5);
+        }
+        .btn-decline-terms {
+            padding: 12px 30px;
+            background: transparent;
+            color: var(--ink-color);
+            border: 2px solid var(--ink-color);
+            font-family: 'Cinzel Decorative';
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-decline-terms:hover {
+            background: rgba(44, 27, 24, 0.1);
+        }
+
+        .navbar { background-color: rgba(10, 10, 10, 0.9); border-bottom: 1px solid rgba(212, 175, 55, 0.3); padding: 1rem 0; z-index: 100; backdrop-filter: blur(10px); }
+        
+        /* Volume Control Button */
+        .volume-btn {
+            color: var(--gold);
+            font-size: 1.2rem;
+            padding: 5px 10px;
+            border: none;
+            background: transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .volume-btn:hover {
+            color: #ffd700;
+            transform: scale(1.1);
+        }
+        .volume-btn.volume-off {
+            opacity: 0.6;
+        }
+        .volume-btn.volume-on {
+            opacity: 1;
+        }
+        
+        .navbar-brand { 
+            font-family: 'Cinzel Decorative'; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            line-height: 1.1; 
+            color: #ffd700; 
+            filter: url(#gold-texture); 
+            font-size: 1.5rem; 
+            transition: 0.3s;
+        }
+        @media (max-width: 768px) { 
+            .navbar-brand { font-size: 1.2rem; } 
+        }
+        .nav-link { font-family: 'Cinzel Decorative'; color: var(--gold); transition: 0.3s; }
+        .form-check-input { background-color: #333; border-color: #666; width: 3em; height: 1.5em; cursor: pointer; }
+        .form-check-input:checked { background-color: var(--gold); border-color: var(--gold); }
+        footer { padding: 40px; text-align: center; border-top: 1px solid var(--gold); background: #0a0a0a; position: relative; z-index: 10; color: #777; }
+        footer .container { position: relative; }
+
+        /* =========================================
+           TICKET OVERLAY CSS
+           ========================================= */
+        #ticket-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 20000; display: none;
+            align-items: center; justify-content: center; flex-direction: column;
+            backdrop-filter: blur(10px); animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* DYNAMIC HOUSE COLORS */
+        .hogwarts-ticket.gryffindor { --house-color: #740001; --house-accent: #d3a625; --ticket-bg: #fff5f5; }
+        .hogwarts-ticket.slytherin  { --house-color: #1a472a; --house-accent: #5d5d5d; --ticket-bg: #f5fff5; }
+        .hogwarts-ticket.ravenclaw  { --house-color: #0e1a40; --house-accent: #946b2d; --ticket-bg: #f5faff; }
+        .hogwarts-ticket.hufflepuff { --house-color: #372e29; --house-accent: #ecb939; --ticket-bg: #fffdf0; }
+        .hogwarts-ticket.muggles    { --house-color: #3e2723; --house-accent: #b8860b; --ticket-bg: #fdf5e6; }
+
+        /* TICKET CONTAINER */
+        .hogwarts-ticket {
+            width: 900px; height: 380px;
+            background-color: var(--ticket-bg);
+            background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png');
+            border: 3px solid var(--house-color);
+            border-radius: 6px;
+            position: relative; display: flex;
+            box-shadow: 0 30px 80px rgba(0,0,0,1);
+            font-family: 'Cinzel Decorative', cursive;
+            filter: url(#wrinkle-paper) contrast(1.1) sepia(0.2);
+            animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            color: var(--house-color);
+            padding: 10px;
+        }
+
+        /* Inner Border */
+        .ticket-inner {
+            width: 100%; height: 100%;
+            border: 2px solid var(--house-color);
+            display: flex;
+        }
+
+        /* LEFT BLOCK (STUB) */
+        .ticket-left {
+            width: 27%;
+            border-right: 2px dashed var(--house-color);
+            background: rgba(0,0,0,0.02);
+            position: relative;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+        }
+
+        /* PLATFORM NUMBER LAYOUT */
+        .platform-info-container {
+            position: absolute;
+            top: 15px; left: 15px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .platform-label {
+            font-family: 'Crimson Text', serif;
+            font-weight: 700; font-size: 0.7rem;
+            color: var(--house-color); text-transform: uppercase;
+            margin-bottom: 2px; letter-spacing: 1px;
+        }
+
+        /* FRACTION CIRCLE */
+        .platform-circle {
+            width: 85px; height: 85px; 
+            border: 3px solid var(--house-color);
+            background: #000;
+            border-radius: 50%;
+            display: flex; flex-direction: row; 
+            align-items: center; justify-content: center;
+            color: var(--ticket-paper); gap: 3px;
+        }
+        .platform-num-big {
+            font-size: 3rem; line-height: 1; font-weight: 900; margin-bottom: 5px;
+        }
+        .platform-num-small {
+            font-size: 1.5rem; line-height: 1; font-weight: 900; margin-top: 5px;
+        }
+        .fraction-line { width: 100%; height: 2px; background-color: var(--ticket-paper); margin: 2px 0; }
+        .fraction-stack { display: flex; flex-direction: column; align-items: center; font-size: 1.2rem; font-weight: 900; line-height: 1; }
+
+        /* Centered Logo */
+        #ticketHouseLogoContainer {
+            width: 100%; display: flex; justify-content: center; align-items: center;
+            margin-top: 40px;
+        }
+        #ticketHouseLogo {
+            width: 140px; height: auto; display: block;
+            filter: contrast(1.1) sepia(0.3) drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .ticket-stub-footer {
+            position: absolute; bottom: 10px; width: 100%; text-align: center;
+            font-family: 'Crimson Text', serif; font-size: 0.9rem; font-weight: bold;
+            color: var(--house-color); text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        /* RIGHT MAIN */
+        .ticket-right {
+            width: 73%; padding: 30px 50px;
+            display: flex; flex-direction: column; position: relative;
+        }
+
+        .ticket-header-box {
+            text-align: center; border-bottom: 3px double var(--house-accent);
+            padding-bottom: 10px; margin-bottom: 30px;
+        }
+        .ticket-title {
+            font-size: 2.8rem; font-weight: 900; letter-spacing: 3px;
+            color: var(--house-color); text-shadow: 1px 1px 0px var(--house-accent);
+        }
+
+        .ticket-trip-info {
+            flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 5px;
+        }
+
+        .main-trip-line {
+            font-family: 'Pinyon Script', cursive; font-size: 3.2rem; color: var(--house-color);
+            line-height: 1; white-space: nowrap; text-align: center;
+        }
+        
+        .sub-trip-line {
+            font-family: 'Cinzel Decorative'; font-weight: 700; font-size: 1.2rem;
+            text-transform: uppercase; color: var(--house-color);
+            margin-top: 10px; text-align: center; letter-spacing: 2px;
+        }
+
+        .ticket-footer {
+            margin-top: auto; border-top: 1px solid var(--house-accent);
+            padding-top: 8px; text-align: center;
+        }
+        .ticket-instructions {
+            font-family: 'Crimson Text', serif; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;
+            color: var(--house-color); opacity: 0.9;
+        }
+
+        .success-msg-container {
+            margin-top: 30px; text-align: center; color: var(--gold);
+            font-family: 'Cinzel Decorative'; font-size: 1.4rem;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8); animation: fadeIn 2s ease;
+        }
+        .close-ticket-btn {
+            margin-top: 20px; background: transparent; border: 1px solid var(--gold);
+            color: var(--gold); padding: 10px 30px; font-family: 'Cinzel Decorative';
+            cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .close-ticket-btn:hover { background: var(--gold); color: #000; }
+
+        /* --- MOBILE RESPONSIVE (FIXED) --- */
+        @media (max-width: 768px) {
+            .hogwarts-ticket { 
+                width: 90%; 
+                max-width: 360px; /* Constrain width */
+                height: auto; 
+                min-height: 500px; /* Ensure enough height */
+                flex-direction: column; 
+                padding: 5px;
+            }
+            
+            .ticket-inner { flex-direction: column; }
+
+            /* Stack Stub on Top */
+            .ticket-left { 
+                width: 100%; 
+                height: 180px; /* Fixed height for Stub */
+                border-right: none; 
+                border-bottom: 2px dashed var(--house-color); 
+                padding: 10px; 
+            }
+
+            /* Adjust Platform Info for Mobile */
+            .platform-info-container {
+                position: absolute; top: 10px; left: 10px;
+            }
+            .platform-circle { width: 70px; height: 70px; }
+            .platform-num-big { font-size: 2.2rem; }
+            .fraction-stack { font-size: 1rem; }
+
+            /* Adjust Logo for Mobile */
+            #ticketHouseLogoContainer { margin-top: 0; }
+            #ticketHouseLogo { width: 100px; }
+
+            /* Stack Main on Bottom */
+            .ticket-right { 
+                width: 100%; 
+                padding: 20px 10px; 
+                text-align: center;
+            }
+
+            .ticket-title { font-size: 2rem; letter-spacing: 1px; }
+            .main-trip-line { font-size: 2.2rem; white-space: normal; line-height: 1.2; }
+            .sub-trip-line { font-size: 1rem; }
+            
+            .ticket-instructions { font-size: 0.6rem; }
+        }
+    </style>
+</head>
+    <svg width="0" height="0" style="position: absolute;">
+        <filter id="gold-texture" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" result="noise" /><feDiffuseLighting in="noise" lighting-color="#d4af37" surfaceScale="3" result="coloredNoise"><feDistantLight azimuth="45" elevation="60" /></feDiffuseLighting><feSpecularLighting in="noise" surfaceScale="6" specularConstant="1" specularExponent="20" lighting-color="#ffecb3" result="specular"><fePointLight x="-5000" y="-10000" z="20000" /></feSpecularLighting><feComposite in="specular" in2="SourceAlpha" operator="in" result="specularText" /><feComposite in="coloredNoise" in2="SourceAlpha" operator="in" result="coloredText" /><feMerge><feMergeNode in="coloredText" /><feMergeNode in="specularText" /></feMerge><feDropShadow dx="4" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.8"/></filter>
+    </svg>
+
+<body>
+
+    <div id="magic-viewport"></div>
+    <div id="flash-overlay"></div>
+    <div id="ambient-light"></div>
+
+    <svg width="0" height="0" style="position: absolute;">
+        <filter id="wrinkle-paper" x="0%" y="0%" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" /><feDiffuseLighting in="noise" lighting-color="#fff" surfaceScale="1.5"><feDistantLight azimuth="45" elevation="50" /></feDiffuseLighting><feComposite operator="in" in2="SourceGraphic" result="textured"/><feBlend mode="multiply" in="textured" in2="SourceGraphic"/></filter>
+    </svg>
+
+    <div id="wand"><img src="assets/wand.png" alt="Wand cursor"></div>
+
+    <div id="site-wrapper">
+        <nav class="navbar navbar-expand-lg sticky-top navbar-dark">
+            <div class="container">
+                <a class="navbar-brand" href="main.html">
+                    <span style="display: block;">Hogwarts</span>
+                    <span style="display: block;">Hackathon</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+                <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                    <ul class="navbar-nav align-items-center">
+                        <li class="nav-item me-3">
+                            <button id="volumeControl" class="btn btn-link volume-btn" type="button" title="Toggle Background Music">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                        </li>
+                        <li class="nav-item"><a class="nav-link" href="main.html#home">Great Hall</a></li>
+                        <li class="nav-item"><a class="nav-link" href="teams.html">Teams</a></li>
+                        <li class="nav-item"><a class="nav-link" href="organizers.html">Organizers</a></li>
+                        <li class="nav-item"><a class="nav-link" href="timeline.html">Timeline</a></li>
+                        <li class="nav-item"><a class="nav-link" href="rules.html">Rules</a></li>
+                        <li class="nav-item"><a class="nav-link" href="faq.html">FAQs</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <section class="registration-section">
+            <div class="parchment-form">
+                <div class="form-header">
+                    <h2><i class="fas fa-scroll"></i> Team Contract</h2>
+                    <p style="font-family: 'Pinyon Script', cursive; font-size: 1.6rem; color: var(--ink-color);">
+                        "I solemnly swear that I am up to no good code."
+                    </p>
+                </div>
+
+                <div id="registrationClosedMessage" style="display: none; text-align: center; padding: 40px; margin-bottom: 30px;">
+                    <p style="color: var(--gold); font-style: italic; font-size: 1.5rem; font-family: 'Cinzel Decorative'; margin: 0;">
+                        Registrations are closed
+                    </p>
+                </div>
+
+                <form id="registrationForm">
+             
+                    <h4 class="section-title">Team Details</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="magic-label">Team Name</label>
+                                <input type="text" id="teamNameInput" class="magic-input" placeholder="e.g., Dumbledore's Army" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group" style="z-index: 100;"> 
+                                <label class="magic-label">Select House</label>
+                                <div class="custom-select-wrapper" id="houseSelect">
+                                    <div class="custom-select-trigger"><span>Choose House</span></div>
+                                    <div class="custom-options">
+                                        <span class="custom-option" data-value="gryffindor">Gryffindor(FinTech)</span>
+                                        <span class="custom-option" data-value="slytherin">Slytherin(Cyber Security)</span>
+                                        <span class="custom-option" data-value="ravenclaw">Ravenclaw(Smart Education)</span>
+                                        <span class="custom-option" data-value="hufflepuff">Hufflepuff(Agriculture)</span>
+                                        <span class="custom-option" data-value="muggles">Muggles(Tourism)</span>
+                                    </div>
+                                    <input type="hidden" name="house" id="houseInput" value="muggles">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                             <div class="form-group" style="z-index: 50;"> 
+                                <label class="magic-label">Team Size</label>
+                                <div class="custom-select-wrapper" id="teamSizeSelect">
+                                    <div class="custom-select-trigger"><span>4 Wizards</span></div>
+                                    <div class="custom-options">
+                                        <span class="custom-option" data-value="3">3 Wizards</span>
+                                        <span class="custom-option" data-value="4" class="selected">4 Wizards</span>
+                                    </div>
+                                    <input type="hidden" name="team_size" id="teamSizeInput" value="4">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Display -->
+                    <div class="row" style="margin-top: 20px; margin-bottom: 20px;">
+                        <div class="col-md-12">
+                            <div style="background: rgba(212, 175, 55, 0.1); border: 2px solid var(--gold); padding: 20px; border-radius: 8px; text-align: center;">
+                                <div style="font-family: 'Cinzel Decorative'; color: var(--ink-color); font-size: 1.2rem; margin-bottom: 10px;">
+                                    Registration Fee
+                                </div>
+                                <div style="font-family: 'Crimson Text'; color: var(--ink-color); font-size: 1rem; margin-bottom: 5px;">
+                                    ₹349 per person
+                                </div>
+                                <div id="totalPriceDisplay" style="font-family: 'Cinzel Decorative'; color: var(--gold); font-size: 1.8rem; font-weight: bold;">
+                                    Total: ₹1,396
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="membersContainer"></div>
+
+                    <h4 class="section-title">Gringotts Transaction</h4>
+                    
+                    <!-- QR Code Display -->
+                    <div class="row" style="margin-bottom: 30px;">
+                        <div class="col-md-12" style="text-align: center;">
+                            <div style="margin-bottom: 15px;">
+                                <label class="magic-label" style="font-size: 1.1rem;">Scan QR Code to Pay</label>
+                            </div>
+                            <div id="qrCodeContainer" style="display: inline-block; padding: 15px; background: var(--parchment-base); border-radius: 10px; box-shadow: none; position: relative; border: none;">
+                                <img id="qrCodeImage" src="assets/1396.jpg" alt="Payment QR Code" style="max-width: 250px; height: auto; display: block; border: none; outline: none;">
+                                <button type="button" id="downloadQRBtn" style="position: absolute; bottom: 10px; right: 10px; width: 40px; height: 40px; background: var(--ink-color); color: var(--parchment-base); border: 2px solid var(--ink-color); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 1.1rem;">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                            <div style="margin-top: 10px; font-family: 'Crimson Text'; color: var(--ink-color); font-size: 0.9rem;">
+                                Amount: <span id="qrAmountDisplay" style="font-weight: bold; color: var(--gold);">₹1,396</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="magic-label">UTR / Transaction ID</label>
+                                <input type="text" id="utrInput" name="utr_transaction_id" class="magic-input" placeholder="e.g., 6364024845020" pattern="[A-Za-z0-9]{8,20}" title="UTR must be 8-20 alphanumeric characters" required>
+                                <small class="validation-message" id="utrError" style="display: none; color: #c62828; font-family: 'Crimson Text'; font-size: 0.85rem; margin-top: 5px;"></small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="magic-label">Payment Screenshot</label>
+                                <div class="file-upload-wrapper">
+                                    <input type="file" id="paymentProof" accept="image/*" required onchange="updateFileName('paymentProof', 'paymentLabel')">
+                                    <label for="paymentProof" id="paymentLabel" class="btn-file-custom">
+                                        <i class="fas fa-file-invoice-dollar"></i> Upload Proof
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 30px;">
+                        <div class="form-check" style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" class="form-check-input" id="termsCheckbox" required style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--ink-color);">
+                            <label class="form-check-label" for="termsCheckbox" style="color: var(--ink-color); font-family: 'Crimson Text'; font-size: 1rem; cursor: pointer; user-select: none;">
+                                I agree to the <a href="#" id="termsLink" style="color: var(--gold); text-decoration: underline;">Terms and Conditions</a>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-submit">
+                        <i class="fas fa-feather-alt"></i> Seal The Contract
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <footer>
+            <div class="container">
+                <p>Mischief Managed &copy; 2025 Hogwarts Hackathon</p>
+            </div>
+        </footer>
+    </div>
+
+    <div id="ticket-overlay">
+        <div class="hogwarts-ticket" id="finalTicket">
+            
+            <div class="ticket-inner">
+                
+                <div class="ticket-left">
+                    <div class="platform-info-container">
+                        <span class="platform-label">PLATFORM</span>
+                        
+                        <div class="platform-circle">
+                            <span class="platform-num-big">9</span>
+                            <div class="fraction-stack">
+                                <span>3</span>
+                                <div class="fraction-line"></div>
+                                <span>4</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="ticketHouseLogoContainer">
+                        <img id="ticketHouseLogo" src="" alt="House Logo">
+                    </div>
+
+                    <div class="ticket-stub-footer">LONDON</div>
+                </div>
+
+                <div class="ticket-right">
+                    <div class="ticket-header-box">
+                        <div class="ticket-title">HOGWARTS EXPRESS</div>
+                    </div>
+
+                    <div class="ticket-trip-info">
+                        <div class="main-trip-line">
+                            <span id="ticketTeamName">Wizarding World</span> to Hogwarts
+                        </div>
+                        
+                        <div class="sub-trip-line">One Way Trip</div>
+                    </div>
+
+                    <div class="ticket-footer">
+                        <span class="ticket-instructions">Instructed to follow the rules and regulations of Hogwarts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="success-msg-container">
+            <i class="fas fa-check-circle"></i> Your ticket has been issued successfully.
+        </div>
+
+        <button class="close-ticket-btn" onclick="closeTicket()">Return to Grounds</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const isDesktop = window.matchMedia("(min-width: 992px)");
+        const toggleBtn = document.getElementById('magicToggle');
+        const wand = document.getElementById('wand');
+        const lightLayer = document.getElementById('ambient-light');
+        const membersContainer = document.getElementById('membersContainer');
+        
+        let magicEnabled = false;
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('change', (e) => {
+                magicEnabled = e.target.checked;
+                if (magicEnabled) { document.body.classList.add('magic-on'); } else { document.body.classList.remove('magic-on'); }
+            });
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDesktop.matches) {
+                const x = e.clientX; const y = e.clientY;
+                wand.style.transform = `translate(${x}px, ${y}px) rotate(15deg)`;
+                lightLayer.style.setProperty('--x', `${x}px`);
+                lightLayer.style.setProperty('--y', `${y}px`);
+                
+                if(Math.random() > 0.5) {
+                    const wandRect = wand.getBoundingClientRect();
+                    const angle = 15 * (Math.PI / 180); // Convert to radians
+                    
+                    // The tip is at the top center of the wand image
+                    // Tip position relative to top-left: (width/2, 0)
+                    // Adjust up and left to match visual tip
+                    const tipRelX = (wandRect.width / 2) - 20; // Move more to the left
+                    const tipRelY = -5; // Move down slightly
+                    
+                    // Apply rotation transformation around origin (0,0)
+                    const tipX = wandRect.left + tipRelX * Math.cos(angle) - tipRelY * Math.sin(angle);
+                    const tipY = wandRect.top + tipRelX * Math.sin(angle) + tipRelY * Math.cos(angle);
+                    
+                    const trail = document.createElement('div');
+                    trail.classList.add('cursor-trail');
+                    trail.style.left = `${tipX}px`; 
+                    trail.style.top = `${tipY}px`;
+                    document.body.appendChild(trail); 
+                    setTimeout(() => trail.remove(), 500);
+                }
+            }
+        });
+        
+        // Click sprinkle animation
+        window.addEventListener('click', (e) => {
+            if (!isDesktop.matches) return;
+            // Skip if clicking on form elements, buttons, or links
+            if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.btn') || 
+                e.target.closest('input') || e.target.closest('select') || e.target.closest('.custom-select-wrapper')) return;
+            
+            const wandRect = wand.getBoundingClientRect();
+            const angle = 15 * (Math.PI / 180);
+            const tipRelX = (wandRect.width / 2) - 20;
+            const tipRelY = -5;
+            const tipX = wandRect.left + tipRelX * Math.cos(angle) - tipRelY * Math.sin(angle);
+            const tipY = wandRect.top + tipRelX * Math.sin(angle) + tipRelY * Math.cos(angle);
+            
+            // Create burst of sprinkles on click
+            for (let i = 0; i < 8; i++) {
+                const sprinkle = document.createElement('div');
+                sprinkle.style.cssText = `
+                    position: fixed;
+                    left: ${tipX}px;
+                    top: ${tipY}px;
+                    width: 4px;
+                    height: 4px;
+                    background: #d4af37;
+                    border-radius: 50%;
+                    pointer-events: none;
+                    z-index: 9999;
+                    box-shadow: 0 0 6px #d4af37;
+                `;
+                document.body.appendChild(sprinkle);
+                const angle2 = (Math.PI * 2 * i) / 8;
+                const distance = 30 + Math.random() * 20;
+                sprinkle.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { transform: `translate(${Math.cos(angle2) * distance}px, ${Math.sin(angle2) * distance}px) scale(0)`, opacity: 0 }
+                ], { duration: 500, easing: 'ease-out' }).onfinish = () => sprinkle.remove();
+            }
+        });
+
+        /* Dropdown Logic */
+        document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
+            const trigger = wrapper.querySelector('.custom-select-trigger');
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation(); 
+                document.querySelectorAll('.custom-select-wrapper').forEach(other => {
+                    if (other !== wrapper) other.classList.remove('open');
+                });
+                wrapper.classList.toggle('open');
+            });
+        });
+
+        document.querySelectorAll('.custom-option').forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const wrapper = this.closest('.custom-select-wrapper');
+                if(!wrapper) return;
+                
+                wrapper.querySelector('.custom-option.selected')?.classList.remove('selected');
+                this.classList.add('selected');
+                
+                const text = this.textContent;
+                const value = this.getAttribute('data-value');
+                
+                wrapper.querySelector('.custom-select-trigger span').textContent = text;
+                wrapper.querySelector('input[type="hidden"]').value = value;
+                
+                if(wrapper.id === 'teamSizeSelect') {
+                    renderMembers(value);
+                    updatePriceAndQR(value);
+                }
+                wrapper.classList.remove('open'); 
+            });
+        });
+
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('.custom-select-wrapper')) {
+                document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
+                    wrapper.classList.remove('open');
+                });
+            }
+        });
+
+        function renderMembers(count) {
+            membersContainer.innerHTML = ''; 
+            for (let i = 1; i <= count; i++) {
+                const memberHTML = `
+                    <div class="member-block mt-4">
+                        <h4 class="section-title">Wizard ${i} ${i == 1 ? '(Leader)' : ''}</h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="magic-label">Full Name</label>
+                                    <input type="text" name="member_${i}_name" class="magic-input" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="magic-label">Owl Post (Email)</label>
+                                    <input type="email" name="member_${i}_email" class="magic-input member-email" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" title="Please enter a valid email address" required>
+                                    <small class="validation-message member-email-error" style="display: none; color: #c62828; font-family: 'Crimson Text'; font-size: 0.85rem; margin-top: 5px;"></small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="magic-label">Magical Contact</label>
+                                    <input type="tel" name="member_${i}_phone" class="magic-input member-phone" pattern="[0-9]{10}" maxlength="10" title="Phone number must be exactly 10 digits" required>
+                                    <small class="validation-message member-phone-error" style="display: none; color: #c62828; font-family: 'Crimson Text'; font-size: 0.85rem; margin-top: 5px;"></small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="magic-label">College Name</label>
+                                    <input type="text" name="member_${i}_college" class="magic-input" placeholder="e.g., Hogwarts School" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                membersContainer.insertAdjacentHTML('beforeend', memberHTML);
+            }
+            
+            // Add event listeners for validation
+            setupFieldValidations();
+        }
+
+        function updatePriceAndQR(teamSize) {
+            const pricePerPerson = 349;
+            const totalPrice = pricePerPerson * parseInt(teamSize);
+            const formattedPrice = totalPrice.toLocaleString('en-IN');
+            
+            // Update price display
+            const totalPriceDisplay = document.getElementById('totalPriceDisplay');
+            if (totalPriceDisplay) {
+                totalPriceDisplay.textContent = `Total: ₹${formattedPrice}`;
+            }
+            
+            // Update QR code and amount
+            const qrCodeImage = document.getElementById('qrCodeImage');
+            const qrAmountDisplay = document.getElementById('qrAmountDisplay');
+            
+            if (teamSize == 3) {
+                if (qrCodeImage) qrCodeImage.src = 'assets/1047.jpg';
+                if (qrAmountDisplay) qrAmountDisplay.textContent = '₹1,047';
+            } else if (teamSize == 4) {
+                if (qrCodeImage) qrCodeImage.src = 'assets/1396.jpg';
+                if (qrAmountDisplay) qrAmountDisplay.textContent = '₹1,396';
+            }
+        }
+
+        // Download QR Code functionality
+        function downloadQRCode() {
+            const qrImage = document.getElementById('qrCodeImage');
+            if (!qrImage) return;
+            
+            // Get the image source
+            const imageUrl = qrImage.src;
+            
+            // Create a temporary anchor element
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            
+            // Get the amount to use in filename
+            const amountDisplay = document.getElementById('qrAmountDisplay');
+            const amount = amountDisplay ? amountDisplay.textContent.replace('₹', '').replace(',', '') : '1396';
+            link.download = `payment-qr-${amount}.jpg`;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize download button
+        document.addEventListener('DOMContentLoaded', function() {
+            const downloadBtn = document.getElementById('downloadQRBtn');
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', downloadQRCode);
+            }
+        });
+
+        // Initialize with default team size of 4
+        renderMembers(4);
+        updatePriceAndQR(4);
+        
+        // Field Validation Functions
+        function setupFieldValidations() {
+            // Phone number validation - only allow digits and max 10
+            const phoneInputs = document.querySelectorAll('.member-phone');
+            phoneInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    // Remove any non-digit characters
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    // Limit to 10 digits
+                    if (this.value.length > 10) {
+                        this.value = this.value.slice(0, 10);
+                    }
+                    validatePhone(this);
+                });
+                
+                input.addEventListener('blur', function() {
+                    validatePhone(this);
+                });
+            });
+            
+            // Email validation
+            const emailInputs = document.querySelectorAll('.member-email');
+            emailInputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    validateEmail(this);
+                });
+                
+                input.addEventListener('input', function() {
+                    // Clear error on input
+                    const errorElement = this.parentElement.querySelector('.member-email-error');
+                    if (errorElement) {
+                        errorElement.style.display = 'none';
+                        this.style.borderBottomColor = '';
+                    }
+                });
+            });
+            
+            // UTR validation
+            const utrInput = document.getElementById('utrInput');
+            if (utrInput) {
+                utrInput.addEventListener('input', function(e) {
+                    // Allow alphanumeric characters only
+                    this.value = this.value.replace(/[^A-Za-z0-9]/g, '');
+                    validateUTR(this);
+                });
+                
+                utrInput.addEventListener('blur', function() {
+                    validateUTR(this);
+                });
+            }
+        }
+        
+        function validatePhone(input) {
+            const value = input.value.trim();
+            const errorElement = input.parentElement.querySelector('.member-phone-error');
+            
+            if (value.length === 0) {
+                if (errorElement) {
+                    errorElement.textContent = 'Phone number is required';
+                    errorElement.style.display = 'block';
+                }
+                input.style.borderBottomColor = '#c62828';
+                return false;
+            } else if (value.length !== 10) {
+                if (errorElement) {
+                    errorElement.textContent = 'Phone number must be exactly 10 digits';
+                    errorElement.style.display = 'block';
+                }
+                input.style.borderBottomColor = '#c62828';
+                return false;
+            } else if (!/^[0-9]{10}$/.test(value)) {
+                if (errorElement) {
+                    errorElement.textContent = 'Phone number must contain only digits';
+                    errorElement.style.display = 'block';
+                }
+                input.style.borderBottomColor = '#c62828';
+                return false;
+            } else {
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+                input.style.borderBottomColor = '';
+                return true;
+            }
+        }
+        
+        function validateEmail(input) {
+            const value = input.value.trim();
+            const errorElement = input.parentElement.querySelector('.member-email-error');
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            
+            if (value.length === 0) {
+                if (errorElement) {
+                    errorElement.textContent = 'Email is required';
+                    errorElement.style.display = 'block';
+                }
+                input.style.borderBottomColor = '#c62828';
+                return false;
+            } else if (!emailRegex.test(value)) {
+                if (errorElement) {
+                    errorElement.textContent = 'Please enter a valid email address (e.g., example@domain.com)';
+                    errorElement.style.display = 'block';
+                }
+                input.style.borderBottomColor = '#c62828';
+                return false;
+            } else {
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+                input.style.borderBottomColor = '';
+                return true;
+            }
+        }
+        
+        function validateUTR(input) {
+            const value = input.value.trim();
+            const errorElement = document.getElementById('utrError');
+            
+            if (value.length === 0) {
+                if (errorElement) {
+                    errorElement.textContent = 'UTR / Transaction ID is required';
+                    errorElement.style.display = 'block';
+                }
+                input.style.borderBottomColor = '#c62828';
+                return false;
+            } else if (value.length < 8) {
+                if (errorElement) {
+                    errorElement.textContent = 'UTR must be at least 8 characters';
+                    errorElement.style.display = 'block';
+                }
+                input.style.borderBottomColor = '#c62828';
+                return false;
+            } else if (value.length > 12) {
+                if (errorElement) {
+                    errorElement.textContent = 'UTR must not exceed 12 characters';
+                    errorElement.style.display = 'block';
+                }
+                input.style.borderBottomColor = '#c62828';
+                return false;
+            } else if (!/^[A-Za-z0-9]+$/.test(value)) {
+                if (errorElement) {
+                    errorElement.textContent = 'UTR must contain only letters and numbers';
+                    errorElement.style.display = 'block';
+                }
+                input.style.borderBottomColor = '#c62828';
+                return false;
+            } else {
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+                input.style.borderBottomColor = '';
+                return true;
+            }
+        }
+        
+        // Validate all fields before form submission
+        function validateAllFields() {
+            let isValid = true;
+            
+            // Validate UTR
+            const utrInput = document.getElementById('utrInput');
+            if (utrInput && !validateUTR(utrInput)) {
+                isValid = false;
+            }
+            
+            // Validate all phone numbers
+            const phoneInputs = document.querySelectorAll('.member-phone');
+            phoneInputs.forEach(input => {
+                if (!validatePhone(input)) {
+                    isValid = false;
+                }
+            });
+            
+            // Validate all emails
+            const emailInputs = document.querySelectorAll('.member-email');
+            emailInputs.forEach(input => {
+                if (!validateEmail(input)) {
+                    isValid = false;
+                }
+            });
+            
+            return isValid;
+        } 
+
+        function updateFileName(inputId, labelId) {
+            const input = document.getElementById(inputId);
+            const label = document.getElementById(labelId);
+            if(input.files && input.files.length > 0) {
+                label.innerHTML = `<i class="fas fa-check"></i> ${input.files[0].name}`;
+                label.style.borderColor = 'var(--gold)';
+            }
+        }
+
+        /* TICKET LOGIC - Handled by api-integration.js after successful database submission */
+        // The form submission is now handled by api-integration.js
+        // This ensures the ticket only shows after data is confirmed saved in database
+        
+        function closeTicket() {
+            // Redirect to great hall (main.html)
+            window.location.href = 'main.html';
+        }
+
+        // Terms and Conditions Modal
+        function openTermsModal() {
+            const modal = document.getElementById('termsModal');
+            if (modal) {
+                modal.classList.add('active');
+            }
+        }
+
+        function closeTermsModal() {
+            const modal = document.getElementById('termsModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        function declineTerms() {
+            const checkbox = document.getElementById('termsCheckbox');
+            if (checkbox) {
+                checkbox.checked = false;
+                delete checkbox.dataset.accepted; // Remove acceptance flag
+            }
+            closeTermsModal();
+        }
+
+        function acceptTerms() {
+            const checkbox = document.getElementById('termsCheckbox');
+            if (checkbox) {
+                checkbox.checked = true;
+                checkbox.dataset.accepted = 'true'; // Mark as accepted
+            }
+            closeTermsModal();
+        }
+
+        // Initialize terms modal handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            const termsLink = document.getElementById('termsLink');
+            const termsCheckbox = document.getElementById('termsCheckbox');
+            const termsLabel = termsCheckbox ? termsCheckbox.closest('.form-check').querySelector('label') : null;
+            const closeBtn = document.getElementById('termsModalClose');
+            const acceptBtn = document.getElementById('termsAcceptBtn');
+            const declineBtn = document.getElementById('termsDeclineBtn');
+
+            if (termsLink) {
+                termsLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openTermsModal();
+                });
+            }
+
+            if (termsLabel) {
+                termsLabel.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openTermsModal();
+                });
+            }
+
+            // Handle checkbox interaction - open modal if unchecked, allow uncheck if checked
+            if (termsCheckbox) {
+                termsCheckbox.addEventListener('click', function(e) {
+                    // If checkbox is already checked, allow unchecking (don't prevent default)
+                    if (this.checked) {
+                        // Allow the default behavior to uncheck - don't prevent it
+                        // Remove the accepted flag when unchecking
+                        delete this.dataset.accepted;
+                        return;
+                    }
+                    // If unchecked, prevent checking and open modal
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.checked = false;
+                    openTermsModal();
+                });
+                
+                // Handle change event to prevent checking without acceptance
+                termsCheckbox.addEventListener('change', function(e) {
+                    // If trying to check without acceptance, prevent and open modal
+                    if (this.checked && !this.dataset.accepted) {
+                        // This shouldn't happen if click handler works, but as safety
+                        e.preventDefault();
+                        this.checked = false;
+                        openTermsModal();
+                    } else if (!this.checked) {
+                        // If unchecking, remove the accepted flag
+                        delete this.dataset.accepted;
+                    }
+                }, true); // Use capture phase to catch it early
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeTermsModal);
+            }
+
+            if (declineBtn) {
+                declineBtn.addEventListener('click', declineTerms);
+            }
+
+            if (acceptBtn) {
+                acceptBtn.addEventListener('click', acceptTerms);
+            }
+
+            // Close modal when clicking outside
+            const modalOverlay = document.getElementById('termsModal');
+            if (modalOverlay) {
+                modalOverlay.addEventListener('click', function(e) {
+                    if (e.target === modalOverlay) {
+                        closeTermsModal();
+                    }
+                });
+            }
+        });
+
+        // Fetch with timeout wrapper
+        function fetchWithTimeout(url, options = {}) {
+            const timeout = options.timeout || 5000; // Default 5 seconds
+            delete options.timeout;
+            
+            return new Promise((resolve, reject) => {
+                const timeoutId = setTimeout(() => {
+                    reject(new Error(`Request timeout after ${timeout}ms`));
+                }, timeout);
+                
+                fetch(url, options)
+                    .then(response => {
+                        clearTimeout(timeoutId);
+                        resolve(response);
+                    })
+                    .catch(error => {
+                        clearTimeout(timeoutId);
+                        reject(error);
+                    });
+            });
+        }
+
+        // Check registration status on page load
+        async function checkRegistrationStatus() {
+            try {
+                const response = await fetchWithTimeout('/api/admin/registration-toggle', {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                const data = await response.json();
+                const form = document.getElementById('registrationForm');
+                const closedMessage = document.getElementById('registrationClosedMessage');
+                
+                if (data.success && !data.enabled) {
+                    // Registration is disabled - hide form and show message
+                    if (form) {
+                        form.style.display = 'none';
+                        // Disable all form inputs
+                        const inputs = form.querySelectorAll('input, select, button, textarea');
+                        inputs.forEach(input => {
+                            input.disabled = true;
+                        });
+                    }
+                    if (closedMessage) {
+                        closedMessage.style.display = 'block';
+                    }
+                } else {
+                    // Registration is enabled - show form and hide message
+                    if (form) {
+                        form.style.display = 'block';
+                        const inputs = form.querySelectorAll('input, select, button, textarea');
+                        inputs.forEach(input => {
+                            input.disabled = false;
+                        });
+                    }
+                    if (closedMessage) {
+                        closedMessage.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking registration status:', error);
+                // On timeout or network error, show form but log the issue
+                if (error.message && error.message.includes('timeout')) {
+                    console.warn('Registration status check timed out - showing form anyway');
+                }
+                // On error, default to showing form (allow registration)
+            }
+        }
+
+        // Check registration status when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            checkRegistrationStatus();
+            // Check every 5 seconds to update if admin changes it
+            setInterval(checkRegistrationStatus, 5000);
+        });
+    </script>
+    
+    <!-- Terms and Conditions Modal -->
+    <div id="termsModal" class="terms-modal-overlay">
+        <div class="terms-modal-content">
+            <button id="termsModalClose" class="terms-modal-close" aria-label="Close">&times;</button>
+            <h2 class="terms-modal-title">Terms and Conditions</h2>
+            <div class="terms-modal-body">
+                <p>By participating in the Hogwarts Hackathon, you agree to the following terms and conditions:</p>
+                
+                <h4>1. Eligibility</h4>
+                <ul>
+                    <li>College ID card is mandatory to participate in the hackathon.</li>
+                    <li>All team members must be currently enrolled students.</li>
+                    <li>Each team must consist of 3-4 members.</li>
+                    <li>Participants must register before the deadline.</li>
+                </ul>
+
+                <h4>2. Code of Conduct</h4>
+                <ul>
+                    <li>All participants must maintain professional and respectful behavior throughout the event.</li>
+                    <li>Harassment, discrimination, or any form of inappropriate conduct will result in immediate disqualification.</li>
+                    <li>Participants must follow all event rules and guidelines.</li>
+                    <li>Consumption of alcohol/smoking is strictly prohibited if any such activity is found, the team will be disqualified.</li>
+                </ul>
+
+                <h4>3. Project Requirements</h4>
+                <ul>
+                    <li>All code must be original work created during the hackathon period.</li>
+                    <li>Use of third-party libraries and APIs is allowed, but must be properly attributed.</li>
+                    <li>Projects must align with the selected problem statement and domain.</li>
+                    <li>Projects must be submitted to the Repository of Secrets (GitHub) before the sand in the hourglass runs out.</li>
+                </ul>
+
+                <h4>4. Intellectual Property</h4>
+                <ul>
+                    <li>Participants retain ownership of their projects.</li>
+                    <li>By submitting, participants grant the organizers permission to showcase their work.</li>
+                    <li>All team members must agree on project ownership and distribution.</li>
+                </ul>
+
+                <h4>5. Payment and Refunds</h4>
+                <ul>
+                    <li>Registration fees are non-refundable/non-transferable once payment is confirmed.</li>
+                    <li>Payment must be completed before the registration deadline.</li>
+                </ul>
+
+                <h4>6. Disqualification</h4>
+                <ul>
+                    <li>Violation of any rules may result in immediate disqualification.</li>
+                    <li>Decisions made by the organizing committee are final.</li>
+                    <li>Disqualified teams will not be eligible for prizes or certificates.</li>
+                </ul>
+
+                <h4>7. Liability</h4>
+                <ul>
+                    <li>Organizers are not responsible for any loss or damage to personal property.</li>
+                    <li>Participants are responsible for their own safety and well-being.</li>
+                </ul>
+
+                <p style="margin-top: 20px; font-style: italic; color: #5d4037;">
+                    By checking the box, you acknowledge that you have read, understood, and agree to abide by all the terms and conditions stated above.
+                </p>
+            </div>
+            <div class="terms-modal-actions">
+                <button class="btn-decline-terms" id="termsDeclineBtn">Decline</button>
+                <button class="btn-accept-terms" id="termsAcceptBtn">Accept</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Integration - Must be loaded after all other scripts -->
+    <script src="api-integration.js"></script>
+    <script src="loading-screen.js"></script>
+    <script src="audio-control.js"></script>
+    <script src="disable-copy.js"></script>
+</body>
+</html>

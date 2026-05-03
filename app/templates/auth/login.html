@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Login - EventSpheres{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center">
+    <div class="max-w-md w-full bg-brand-card rounded-3xl shadow-2xl overflow-hidden border border-white/5 relative">
+        <!-- Abstract Decoration -->
+        <div class="absolute top-0 right-0 w-32 h-32 bg-brand-accent/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl"></div>
+        
+        <div class="p-8 sm:p-10 relative z-10">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
+                    <i class="fa-solid fa-bolt text-brand-accent text-2xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-white tracking-tight">Welcome Back</h2>
+                <p class="text-brand-muted mt-2">Sign in to your account</p>
+            </div>
+            
+            <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-6">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-brand-muted mb-2">Email Address</label>
+                    <input id="email" name="email" type="email" required class="w-full bg-brand-bg border border-white/10 rounded-xl px-4 py-3 text-white placeholder-brand-muted/50 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-brand-muted mb-2">Password</label>
+                    <input id="password" name="password" type="password" required class="w-full bg-brand-bg border border-white/10 rounded-xl px-4 py-3 text-white placeholder-brand-muted/50 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all">
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember_me" name="remember_me" type="checkbox" class="h-4 w-4 bg-brand-bg border-white/20 rounded text-brand-accent focus:ring-brand-accent focus:ring-offset-brand-card">
+                        <label for="remember_me" class="ml-2 block text-sm text-brand-muted">Remember me</label>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-3.5 px-4 rounded-xl font-bold text-white bg-brand-accent hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-brand-card focus:ring-brand-accent transition-all shadow-lg shadow-brand-accent/20 hover:-translate-y-0.5">
+                        Sign in
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-8 text-center border-t border-white/10 pt-6">
+                <p class="text-sm text-brand-muted">
+                    Don't have an account? 
+                    <a href="{{ url_for('auth.register') }}" class="font-bold text-white hover:text-brand-accent transition-colors ml-1">Register now</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

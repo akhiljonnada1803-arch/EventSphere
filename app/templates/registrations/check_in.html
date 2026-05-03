@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Check-in: {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-10 text-center relative">
+        <a href="{{ url_for('events.detail', event_id=event.id) }}" class="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-brand-card border border-white/10 flex items-center justify-center text-brand-muted hover:text-white transition-colors">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <h1 class="text-3xl font-extrabold text-white tracking-tight">Scanner</h1>
+        <p class="mt-2 text-brand-muted">{{ event.title }}</p>
+    </div>
+
+    <div class="bg-brand-card shadow-2xl rounded-3xl overflow-hidden border border-white/5">
+        <div class="p-6 md:p-8">
+            <!-- Scanner Area -->
+            <div id="reader" class="w-full bg-black rounded-2xl overflow-hidden border-2 border-dashed border-white/10 mb-8"></div>
+            
+            <!-- Result Container -->
+            <div id="result-container" class="mb-8 hidden">
+                <div class="rounded-2xl p-6 border transition-all" id="status-box">
+                    <div class="flex items-center gap-4">
+                        <div class="shrink-0 w-12 h-12 rounded-full flex items-center justify-center" id="status-icon-bg">
+                            <i id="status-icon" class="fa-solid text-xl"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h3 id="status-title" class="text-lg font-bold mb-1"></h3>
+                            <p id="status-message" class="text-sm"></p>
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center">
+                        <button type="button" onclick="resumeScanner()" class="px-6 py-2.5 rounded-xl text-sm font-bold bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/10">
+                            Scan Next Ticket
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Manual Check-in -->
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div class="w-full border-t border-white/10 border-dashed"></div>
+                </div>
+                <div class="relative flex justify-center">
+                    <span class="px-4 bg-brand-card text-xs text-brand-muted uppercase tracking-wider font-semibold">Or enter manually</span>
+                </div>
+            </div>
+            
+            <form id="manual-form" class="mt-8">
+                <div class="flex gap-3">
+                    <div class="relative flex-grow">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-keyboard text-brand-muted"></i>
+                        </div>
+                        <input type="text" id="manual-token" placeholder="Enter Token ID" class="w-full bg-brand-bg border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-brand-muted/50 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all">
+                    </div>
+                    <button type="submit" class="px-6 py-3 rounded-xl font-bold text-white bg-brand-accent hover:bg-indigo-500 transition-colors shadow-lg shadow-brand-accent/20">
+                        Verify
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    /* html5-qrcode overrides for dark theme */
+    #reader { border: none !important; }
+    #reader video { border-radius: 1rem; }
+    #reader button {
+        background-color: #6366f1 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 0.5rem !important;
+        padding: 0.5rem 1rem !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+    }
+    #reader select {
+        background-color: #111827 !important;
+        color: white !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 0.5rem !important;
+        padding: 0.5rem !important;
+    }
+    #reader a { color: #6366f1 !important; }
+    #reader__dashboard_section_csr span { color: #e5e7eb !important; }
+</style>
+
+<script>
+    let html5QrcodeScanner;
+    
+    function initScanner() {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear();
+        }
+        
+        html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", 
+            { fps: 10, qrbox: {width: 250, height: 250} },
+            /* verbose= */ false
+        );
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    }
+    
+    function onScanSuccess(decodedText, decodedResult) {
+        html5QrcodeScanner.pause();
+        verifyToken(decodedText);
+    }
+    
+    function onScanFailure(error) {}
+    
+    function verifyToken(token) {
+        fetch("{{ url_for('registrations.check_in', event_id=event.id) }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ qr_token: token })
+        })
+        .then(response => response.json())
+        .then(data => {
+            showResult(data.status, data.message);
+        })
+        .catch(error => {
+            showResult('error', 'Network error or server error');
+        });
+    }
+    
+    function showResult(status, message) {
+        const container = document.getElementById('result-container');
+        const box = document.getElementById('status-box');
+        const iconBg = document.getElementById('status-icon-bg');
+        const icon = document.getElementById('status-icon');
+        const title = document.getElementById('status-title');
+        const msg = document.getElementById('status-message');
+        
+        container.classList.remove('hidden');
+        document.getElementById('reader').classList.add('hidden');
+        
+        // Reset classes
+        box.className = 'rounded-2xl p-6 border transition-all';
+        iconBg.className = 'shrink-0 w-12 h-12 rounded-full flex items-center justify-center';
+        icon.className = 'fa-solid text-xl';
+        
+        if (status === 'success') {
+            box.classList.add('bg-green-500/10', 'border-green-500/30');
+            iconBg.classList.add('bg-green-500/20');
+            icon.classList.add('fa-check', 'text-green-400');
+            title.className = 'text-lg font-bold mb-1 text-green-400';
+            title.textContent = 'Check-in Successful';
+            msg.className = 'text-green-400/80';
+        } else if (status === 'warning') {
+            box.classList.add('bg-yellow-500/10', 'border-yellow-500/30');
+            iconBg.classList.add('bg-yellow-500/20');
+            icon.classList.add('fa-exclamation', 'text-yellow-400');
+            title.className = 'text-lg font-bold mb-1 text-yellow-400';
+            title.textContent = 'Already Checked In';
+            msg.className = 'text-yellow-400/80';
+        } else {
+            box.classList.add('bg-red-500/10', 'border-red-500/30');
+            iconBg.classList.add('bg-red-500/20');
+            icon.classList.add('fa-xmark', 'text-red-400');
+            title.className = 'text-lg font-bold mb-1 text-red-400';
+            title.textContent = 'Invalid Ticket';
+            msg.className = 'text-red-400/80';
+        }
+        
+        msg.textContent = message;
+    }
+    
+    function resumeScanner() {
+        document.getElementById('result-container').classList.add('hidden');
+        document.getElementById('reader').classList.remove('hidden');
+        document.getElementById('manual-token').value = '';
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.resume();
+        }
+    }
+    
+    document.getElementById('manual-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const token = document.getElementById('manual-token').value;
+        if (token) {
+            if (html5QrcodeScanner && html5QrcodeScanner.getState() === 2) {
+                html5QrcodeScanner.pause();
+            }
+            verifyToken(token);
+        }
+    });
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        initScanner();
+    });
+</script>
+{% endblock %}

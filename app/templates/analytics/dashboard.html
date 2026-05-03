@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - EventSpheres{% endblock %}
+
+{% block content %}
+<div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Organizer Dashboard</h1>
+        <p class="mt-2 text-brand-muted">Manage events, track metrics, and engage with attendees.</p>
+    </div>
+    <a href="{{ url_for('events.create') }}" class="inline-flex items-center justify-center px-6 py-3 bg-brand-accent hover:bg-indigo-500 rounded-xl text-white font-bold transition-all shadow-lg shadow-brand-accent/20">
+        <i class="fa-solid fa-plus mr-2"></i> New Event
+    </a>
+</div>
+
+{% if stats %}
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+    <!-- Registrations -->
+    <div class="bg-brand-card rounded-3xl p-6 border border-white/5 relative overflow-hidden group">
+        <div class="absolute -right-6 -top-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-colors"></div>
+        <div class="flex items-start justify-between relative z-10">
+            <div>
+                <p class="text-sm font-medium text-brand-muted mb-1">Total Registrations</p>
+                <h3 class="text-3xl font-bold text-white">{{ stats.total_registrations }}</h3>
+            </div>
+            <div class="w-12 h-12 bg-brand-bg rounded-2xl flex items-center justify-center border border-white/5 text-indigo-400">
+                <i class="fa-solid fa-user-group text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue -->
+    <div class="bg-brand-card rounded-3xl p-6 border border-white/5 relative overflow-hidden group">
+        <div class="absolute -right-6 -top-6 w-24 h-24 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-colors"></div>
+        <div class="flex items-start justify-between relative z-10">
+            <div>
+                <p class="text-sm font-medium text-brand-muted mb-1">Total Revenue</p>
+                <h3 class="text-3xl font-bold text-white">₹{{ "%.0f"|format(stats.revenue) }}</h3>
+            </div>
+            <div class="w-12 h-12 bg-brand-bg rounded-2xl flex items-center justify-center border border-white/5 text-green-400">
+                <i class="fa-solid fa-wallet text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance -->
+    <div class="bg-brand-card rounded-3xl p-6 border border-white/5 relative overflow-hidden group">
+        <div class="absolute -right-6 -top-6 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-colors"></div>
+        <div class="flex items-start justify-between relative z-10">
+            <div>
+                <p class="text-sm font-medium text-brand-muted mb-1">Checked In</p>
+                <h3 class="text-3xl font-bold text-white">{{ stats.attendance_count }}</h3>
+            </div>
+            <div class="w-12 h-12 bg-brand-bg rounded-2xl flex items-center justify-center border border-white/5 text-purple-400">
+                <i class="fa-solid fa-qrcode text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+    <!-- Chart Section -->
+    <div class="xl:col-span-2 bg-brand-card rounded-3xl p-6 md:p-8 border border-white/5">
+        <div class="flex items-center justify-between mb-8">
+            <h3 class="text-xl font-bold text-white">Registration Trends</h3>
+            <span class="px-3 py-1 bg-brand-bg rounded-lg border border-white/5 text-xs font-medium text-brand-muted">By Event</span>
+        </div>
+        <div class="relative h-72 w-full">
+            <canvas id="registrationChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Events List -->
+    <div class="xl:col-span-1 bg-brand-card rounded-3xl p-6 md:p-8 border border-white/5 flex flex-col h-full">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-white">Your Events</h3>
+            <a href="{{ url_for('events.home') }}" class="text-sm text-brand-accent hover:text-indigo-400 transition-colors">View All</a>
+        </div>
+        
+        <div class="space-y-4 flex-grow overflow-y-auto pr-2 custom-scrollbar">
+            {% for event in events %}
+            <div class="bg-brand-bg rounded-2xl p-4 border border-white/5 flex items-center gap-4 group">
+                <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-brand-card border border-white/5 relative">
+                    {% if event.poster_url %}
+                    <img src="{{ url_for('static', filename=event.poster_url) }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-white/30 text-xs">IMG</div>
+                    {% endif %}
+                    
+                    {% if event.ends_at < now %}
+                    <div class="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-[1px]">
+                        <i class="fa-solid fa-check text-white/50 text-xs"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="flex-grow min-w-0">
+                    <h4 class="text-white font-semibold truncate group-hover:text-brand-accent transition-colors">
+                        <a href="{{ url_for('events.detail', event_id=event.id) }}" class="focus:outline-none">
+                            <span class="absolute inset-0" aria-hidden="true"></span>
+                            {{ event.title }}
+                        </a>
+                    </h4>
+                    <div class="flex items-center text-xs text-brand-muted mt-1 gap-3">
+                        <span><i class="fa-regular fa-calendar mr-1"></i> {{ event.starts_at.strftime('%b %d') }}</span>
+                        <span><i class="fa-solid fa-users mr-1"></i> {{ event.registrations|length }}/{{ event.capacity }}</span>
+                    </div>
+                </div>
+                
+                <div class="shrink-0 relative z-10 flex flex-col gap-1">
+                    {% if event.ends_at < now %}
+                    <form action="{{ url_for('analytics.send_certificates', event_id=event.id) }}" method="POST" class="m-0" onsubmit="return confirm('Generate and send certificates to all attendees?');">
+                        <button type="submit" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-brand-muted hover:text-white hover:bg-green-500 transition-colors" title="Send Certificates">
+                            <i class="fa-solid fa-award text-xs"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{{ url_for('analytics.event_analytics', event_id=event.id) }}" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-brand-muted hover:text-white hover:bg-blue-500 transition-colors" title="Event Analytics">
+                        <i class="fa-solid fa-chart-pie text-xs"></i>
+                    </a>
+                    <a href="{{ url_for('analytics.broadcast', event_id=event.id) }}" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-brand-muted hover:text-white hover:bg-brand-accent transition-colors" title="Broadcast">
+                        <i class="fa-regular fa-paper-plane text-xs"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-24 bg-brand-card/50 rounded-3xl border border-white/5 relative overflow-hidden">
+    <!-- Decoration -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-accent/5 rounded-full blur-3xl"></div>
+    
+    <div class="relative z-10">
+        <div class="w-24 h-24 bg-brand-bg rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10">
+            <i class="fa-solid fa-calendar-plus text-4xl text-brand-accent/50"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-white mb-2">Ready to host?</h3>
+        <p class="text-brand-muted mb-8 max-w-md mx-auto">Create your first event on EventSpheres and start selling tickets or managing registrations effortlessly.</p>
+        <a href="{{ url_for('events.create') }}" class="inline-flex items-center px-8 py-3 bg-brand-accent hover:bg-indigo-500 rounded-full text-white font-bold transition-all shadow-lg shadow-brand-accent/20 hover:-translate-y-1">
+            Create First Event
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{% if stats %}
+<script>
+    Chart.defaults.color = '#9ca3af';
+    Chart.defaults.font.family = 'Inter';
+    
+    const ctx = document.getElementById('registrationChart').getContext('2d');
+    
+    // Create gradient
+    let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(99, 102, 241, 0.5)');   
+    gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+    const eventNames = [{% for e in events %}'{{ e.title[:15] }}...',{% endfor %}];
+    const eventCounts = [{% for e in events %}{{ e.registrations|length }},{% endfor %}];
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: eventNames,
+            datasets: [{
+                label: 'Registrations',
+                data: eventCounts,
+                backgroundColor: gradient,
+                borderColor: '#6366f1',
+                borderWidth: 2,
+                borderRadius: 8,
+                barPercentage: 0.6,
+                hoverBackgroundColor: '#6366f1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#111827',
+                    titleColor: '#fff',
+                    bodyColor: '#e5e7eb',
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                    border: { display: false },
+                    ticks: { stepSize: 1, padding: 10 }
+                },
+                x: {
+                    grid: { display: false, drawBorder: false },
+                    border: { display: false },
+                    ticks: { padding: 10 }
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

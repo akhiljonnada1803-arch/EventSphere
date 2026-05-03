@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Discover Events - EventSpheres{% endblock %}
+
+{% block content %}
+<!-- Search & Filter Section -->
+<div class="mb-12">
+    <div class="max-w-3xl mx-auto text-center mb-8">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-4">Discover Amazing Events</h1>
+        <p class="text-lg text-brand-muted">Find the best tech fests, workshops, and hackathons around you.</p>
+    </div>
+
+    <form method="GET" action="{{ url_for('events.home') }}" class="max-w-4xl mx-auto">
+        <!-- Search Bar -->
+        <div class="relative group mb-6">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fa-solid fa-search text-brand-muted group-focus-within:text-brand-accent transition-colors"></i>
+            </div>
+            <!-- Using Javascript to filter locally if wanted, but server-side title filter isn't in backend yet. 
+                 Since backend only has category and fee_type, we'll keep the input for visuals or future use, or we can just filter by category -->
+            <input type="text" placeholder="Search events..." class="block w-full pl-12 pr-4 py-4 bg-brand-card/80 border border-white/10 rounded-2xl text-white placeholder-brand-muted focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all shadow-lg backdrop-blur-sm">
+            <button type="submit" class="absolute right-2 top-2 bottom-2 bg-brand-accent hover:bg-indigo-500 text-white px-6 rounded-xl font-medium transition-colors shadow-lg shadow-brand-accent/20">
+                Search
+            </button>
+        </div>
+
+        <!-- Chips / Filters -->
+        <div class="flex flex-wrap items-center justify-center gap-3">
+            <button type="submit" name="category" value="" class="px-5 py-2 rounded-full text-sm font-medium border transition-all {% if not request.args.get('category') %}bg-brand-accent border-brand-accent text-white shadow-lg shadow-brand-accent/20{% else %}bg-brand-card/50 border-white/10 text-brand-muted hover:text-white hover:bg-white/5{% endif %}">
+                All
+            </button>
+            <button type="submit" name="category" value="hackathon" class="px-5 py-2 rounded-full text-sm font-medium border transition-all {% if request.args.get('category') == 'hackathon' %}bg-brand-accent border-brand-accent text-white shadow-lg shadow-brand-accent/20{% else %}bg-brand-card/50 border-white/10 text-brand-muted hover:text-white hover:bg-white/5{% endif %}">
+                Hackathons
+            </button>
+            <button type="submit" name="category" value="workshop" class="px-5 py-2 rounded-full text-sm font-medium border transition-all {% if request.args.get('category') == 'workshop' %}bg-brand-accent border-brand-accent text-white shadow-lg shadow-brand-accent/20{% else %}bg-brand-card/50 border-white/10 text-brand-muted hover:text-white hover:bg-white/5{% endif %}">
+                Workshops
+            </button>
+            <button type="submit" name="category" value="fest" class="px-5 py-2 rounded-full text-sm font-medium border transition-all {% if request.args.get('category') == 'fest' %}bg-brand-accent border-brand-accent text-white shadow-lg shadow-brand-accent/20{% else %}bg-brand-card/50 border-white/10 text-brand-muted hover:text-white hover:bg-white/5{% endif %}">
+                Fests
+            </button>
+            
+            <div class="w-px h-6 bg-white/10 mx-2 hidden sm:block"></div>
+            
+            <select name="fee_type" onchange="this.form.submit()" class="px-4 py-2 bg-brand-card/50 border border-white/10 rounded-full text-sm font-medium text-brand-muted hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-accent cursor-pointer appearance-none">
+                <option value="">Any Price</option>
+                <option value="free" {% if request.args.get('fee_type') == 'free' %}selected{% endif %}>Free</option>
+                <option value="paid" {% if request.args.get('fee_type') == 'paid' %}selected{% endif %}>Paid</option>
+            </select>
+        </div>
+    </form>
+</div>
+
+<!-- Events Grid -->
+<div class="mb-6 flex justify-between items-end">
+    <h2 class="text-2xl font-bold text-white tracking-tight">Trending Events</h2>
+    <span class="text-brand-muted text-sm">{{ events|length }} events found</span>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    {% for event in events %}
+    <a href="{{ url_for('events.detail', event_id=event.id) }}" class="group card-hover bg-brand-card rounded-2xl overflow-hidden border border-white/5 flex flex-col h-full relative">
+        <!-- Poster -->
+        <div class="aspect-[4/5] w-full relative overflow-hidden bg-brand-bg">
+            {% if event.poster_url %}
+            <img src="{{ url_for('static', filename=event.poster_url) }}" alt="{{ event.title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+            {% else %}
+            <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-brand-card to-brand-bg text-brand-accent/30 group-hover:scale-110 transition-transform duration-500">
+                <i class="fa-solid fa-image text-6xl mb-4"></i>
+                <span class="font-semibold tracking-widest uppercase text-xs">EventSpheres</span>
+            </div>
+            {% endif %}
+            
+            <!-- Gradient Overlay -->
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-bg via-transparent to-transparent opacity-80"></div>
+            
+            <!-- Badges -->
+            <div class="absolute top-4 left-4 flex gap-2">
+                <span class="px-3 py-1 bg-black/50 backdrop-blur-md text-white text-xs font-bold rounded-full border border-white/10 uppercase tracking-wider">
+                    {{ event.category }}
+                </span>
+            </div>
+            <div class="absolute top-4 right-4">
+                <div class="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/10 text-white group-hover:bg-brand-accent transition-colors shadow-lg">
+                    <i class="fa-regular fa-heart"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="p-5 flex-grow flex flex-col justify-between z-10 relative -mt-16">
+            <div>
+                <div class="flex items-center gap-2 text-brand-accent font-medium text-xs mb-2 bg-brand-bg/80 backdrop-blur-md inline-flex px-3 py-1 rounded-lg border border-white/5">
+                    <i class="fa-regular fa-calendar"></i>
+                    {{ event.starts_at.strftime('%b %d, %Y') }}
+                </div>
+                <h3 class="text-xl font-bold text-white leading-tight mb-2 group-hover:text-brand-accent transition-colors line-clamp-2">
+                    {{ event.title }}
+                </h3>
+                <p class="text-sm text-brand-muted line-clamp-2 mb-4">
+                    {{ event.description }}
+                </p>
+            </div>
+            
+            <div class="mt-4 flex items-center justify-between border-t border-white/5 pt-4">
+                <div class="flex items-center">
+                    {% if event.fee == 0 %}
+                    <span class="text-lg font-bold text-green-400">Free</span>
+                    {% else %}
+                    <span class="text-lg font-bold text-white">₹{{ "%.0f"|format(event.fee) }}</span>
+                    {% endif %}
+                </div>
+                <div class="text-brand-accent font-semibold text-sm flex items-center group-hover:translate-x-1 transition-transform">
+                    Details <i class="fa-solid fa-arrow-right ml-1.5 text-xs"></i>
+                </div>
+            </div>
+        </div>
+    </a>
+    {% else %}
+    <div class="col-span-full py-20 text-center bg-brand-card/50 rounded-2xl border border-white/5">
+        <div class="w-20 h-20 bg-brand-bg rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+            <i class="fa-regular fa-compass text-3xl text-brand-muted"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">No events found</h3>
+        <p class="text-brand-muted">Try adjusting your filters or search criteria.</p>
+        <a href="{{ url_for('events.home') }}" class="mt-6 inline-block px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-white font-medium transition-colors">
+            Clear Filters
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

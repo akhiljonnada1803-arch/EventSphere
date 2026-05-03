@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}My Tickets - EventSpheres{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex items-end justify-between mb-10">
+        <div>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">My Tickets</h1>
+            <p class="mt-2 text-brand-muted">Your upcoming and past event passes.</p>
+        </div>
+        <div class="hidden sm:block">
+            <div class="bg-brand-card border border-white/10 rounded-full px-4 py-2 text-sm text-white font-medium flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-ticket text-brand-accent"></i> {{ registrations|length }} Total
+            </div>
+        </div>
+    </div>
+
+    {% if registrations %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {% for reg in registrations %}
+        <div class="relative group">
+            <!-- Ticket Shape Container -->
+            <div class="bg-brand-card rounded-3xl border border-white/10 overflow-hidden flex flex-col relative card-hover">
+                
+                <!-- Ticket Cutouts -->
+                <div class="absolute left-0 top-1/2 -mt-4 -ml-4 w-8 h-8 bg-brand-bg rounded-full border-r border-white/10 z-20"></div>
+                <div class="absolute right-0 top-1/2 -mt-4 -mr-4 w-8 h-8 bg-brand-bg rounded-full border-l border-white/10 z-20"></div>
+                
+                <!-- Dashed Line separator -->
+                <div class="absolute top-1/2 left-4 right-4 border-t-2 border-dashed border-white/10 z-10"></div>
+                
+                <!-- Top Section: Event Info -->
+                <div class="p-8 pb-10 relative">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="px-3 py-1 bg-white/5 border border-white/10 text-white text-xs font-bold rounded-full uppercase tracking-wider">
+                            {{ reg.event.category }}
+                        </span>
+                        {% if reg.attended %}
+                        <span class="text-xs font-bold text-green-400 bg-green-400/10 px-3 py-1 rounded-full flex items-center gap-1 border border-green-500/20">
+                            <i class="fa-solid fa-circle-check"></i> Attended
+                        </span>
+                        {% else %}
+                        <span class="text-xs font-bold text-brand-accent bg-brand-accent/10 px-3 py-1 rounded-full border border-brand-accent/20">
+                            Upcoming
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <a href="{{ url_for('events.detail', event_id=reg.event.id) }}" class="block text-2xl font-bold text-white mb-2 leading-tight group-hover:text-brand-accent transition-colors line-clamp-2">
+                        {{ reg.event.title }}
+                    </a>
+                    
+                    <div class="space-y-3 mt-6">
+                        <div class="flex items-center text-brand-muted text-sm">
+                            <div class="w-8 flex justify-center"><i class="fa-regular fa-calendar text-brand-accent/70"></i></div>
+                            <span>{{ reg.event.starts_at.strftime('%B %d, %Y') }}</span>
+                        </div>
+                        <div class="flex items-center text-brand-muted text-sm">
+                            <div class="w-8 flex justify-center"><i class="fa-regular fa-clock text-brand-accent/70"></i></div>
+                            <span>{{ reg.event.starts_at.strftime('%I:%M %p') }}</span>
+                        </div>
+                        <div class="flex items-center text-brand-muted text-sm">
+                            <div class="w-8 flex justify-center"><i class="fa-regular fa-user text-brand-accent/70"></i></div>
+                            <span class="font-medium text-white">{{ current_user.name }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Section: QR Code / Download -->
+                <div class="bg-black/20 p-8 pt-10 flex flex-col items-center justify-center relative">
+                    <div class="bg-white p-3 rounded-2xl shadow-xl shadow-white/5 inline-block mb-4 transition-transform group-hover:scale-105">
+                        <i class="fa-solid fa-qrcode text-6xl text-brand-bg"></i>
+                    </div>
+                    <div class="text-center w-full">
+                        <p class="text-[10px] text-brand-muted uppercase tracking-[0.2em] mb-1">Ticket ID</p>
+                        <p class="font-mono text-sm text-white/80 bg-white/5 py-1 px-4 rounded-lg inline-block border border-white/10">{{ reg.qr_token[:12] }}...</p>
+                        {% if reg.is_group %}
+                        <p class="text-xs text-brand-accent mt-2 font-medium">Group: {{ reg.group_size }} Members</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Action Overlay -->
+                    <div class="absolute inset-0 bg-brand-bg/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-6 z-30 gap-3">
+                        <a href="{{ url_for('registrations.download_ticket', registration_id=reg.id) }}" target="_blank" class="w-full py-3 bg-white text-brand-bg rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-brand-accent hover:text-white transition-colors">
+                            <i class="fa-solid fa-download"></i> Download Pass
+                        </a>
+                        <a href="{{ url_for('registrations.download_certificate', registration_id=reg.id) }}" target="_blank" class="w-full py-3 bg-brand-accent text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-400 transition-colors border border-brand-accent">
+                            <i class="fa-solid fa-award"></i> Certificate
+                        </a>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-24 bg-brand-card/50 rounded-3xl border border-white/5">
+        <div class="w-24 h-24 bg-brand-bg rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10">
+            <i class="fa-solid fa-ticket-simple text-4xl text-brand-muted/50"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-white mb-2">No tickets yet</h3>
+        <p class="text-brand-muted mb-8">You haven't registered for any events yet. Start exploring!</p>
+        <a href="{{ url_for('events.home') }}" class="inline-flex items-center px-8 py-3 bg-brand-accent hover:bg-indigo-500 rounded-full text-white font-bold transition-all shadow-lg shadow-brand-accent/20 hover:-translate-y-1">
+            Browse Events
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

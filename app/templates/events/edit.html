@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Event - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-10 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Edit Event</h1>
+            <p class="mt-2 text-brand-muted">Update details for <span class="text-white font-medium">{{ event.title }}</span></p>
+        </div>
+        {% if event.poster_url %}
+        <div class="w-16 h-16 rounded-xl overflow-hidden border border-white/10 shrink-0">
+            <img src="{{ url_for('static', filename=event.poster_url) }}" class="w-full h-full object-cover">
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="bg-brand-card shadow-2xl rounded-3xl overflow-hidden border border-white/5">
+        <form action="{{ url_for('events.edit', event_id=event.id) }}" method="POST" enctype="multipart/form-data">
+            <div class="p-8 sm:p-10">
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-x-8 gap-y-8">
+                    
+                    <div class="col-span-full">
+                        <label for="title" class="block text-sm font-medium text-brand-muted mb-2">Event Title</label>
+                        <input type="text" name="title" id="title" value="{{ event.title }}" required class="w-full bg-brand-bg border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all font-medium">
+                    </div>
+
+                    <div class="col-span-full md:col-span-3">
+                        <label for="category" class="block text-sm font-medium text-brand-muted mb-2">Category</label>
+                        <div class="relative">
+                            <select id="category" name="category" required class="w-full bg-brand-bg border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all appearance-none">
+                                <option value="hackathon" {% if event.category == 'hackathon' %}selected{% endif %}>Hackathon</option>
+                                <option value="workshop" {% if event.category == 'workshop' %}selected{% endif %}>Workshop</option>
+                                <option value="fest" {% if event.category == 'fest' %}selected{% endif %}>Fest / Conference</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-brand-muted">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-span-full md:col-span-3">
+                        <label for="capacity" class="block text-sm font-medium text-brand-muted mb-2">Total Capacity</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-users text-brand-muted"></i>
+                            </div>
+                            <input type="number" name="capacity" id="capacity" min="{{ event.registrations|length }}" value="{{ event.capacity }}" required class="w-full bg-brand-bg border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all">
+                        </div>
+                        <p class="mt-1 text-xs text-brand-muted/70">Minimum {{ event.registrations|length }} (current registrations).</p>
+                    </div>
+
+                    <div class="col-span-full md:col-span-3">
+                        <label for="starts_at" class="block text-sm font-medium text-brand-muted mb-2">Start Date & Time</label>
+                        <input type="datetime-local" name="starts_at" id="starts_at" value="{{ event.starts_at.strftime('%Y-%m-%dT%H:%M') }}" required class="w-full bg-brand-bg border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all [color-scheme:dark]">
+                    </div>
+
+                    <div class="col-span-full md:col-span-3">
+                        <label for="ends_at" class="block text-sm font-medium text-brand-muted mb-2">End Date & Time</label>
+                        <input type="datetime-local" name="ends_at" id="ends_at" value="{{ event.ends_at.strftime('%Y-%m-%dT%H:%M') }}" required class="w-full bg-brand-bg border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all [color-scheme:dark]">
+                    </div>
+
+                    <div class="col-span-full md:col-span-3">
+                        <label for="fee" class="block text-sm font-medium text-brand-muted mb-2">Ticket Price (₹)</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-muted font-medium">₹</div>
+                            <input type="number" name="fee" id="fee" min="0" step="0.01" value="{{ event.fee }}" required class="w-full bg-brand-bg border border-white/10 rounded-xl pl-9 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all">
+                        </div>
+                    </div>
+
+                    <div class="col-span-full">
+                        <label for="venue" class="block text-sm font-medium text-brand-muted mb-2">Venue</label>
+                        <input type="text" name="venue" id="venue" value="{{ event.venue or '' }}" placeholder="e.g. Convention Center, Main Hall" class="w-full bg-brand-bg border border-white/10 rounded-xl px-4 py-3 text-white placeholder-brand-muted/40 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all font-medium">
+                    </div>
+
+                    <div class="col-span-full md:col-span-3">
+                        <label for="latitude" class="block text-sm font-medium text-brand-muted mb-2">Latitude (Optional)</label>
+                        <input type="number" step="any" name="latitude" id="latitude" value="{{ event.latitude or '' }}" placeholder="e.g. 12.9716" class="w-full bg-brand-bg border border-white/10 rounded-xl px-4 py-3 text-white placeholder-brand-muted/40 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all">
+                    </div>
+
+                    <div class="col-span-full md:col-span-3">
+                        <label for="longitude" class="block text-sm font-medium text-brand-muted mb-2">Longitude (Optional)</label>
+                        <input type="number" step="any" name="longitude" id="longitude" value="{{ event.longitude or '' }}" placeholder="e.g. 77.5946" class="w-full bg-brand-bg border border-white/10 rounded-xl px-4 py-3 text-white placeholder-brand-muted/40 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all">
+                    </div>
+
+                    <div class="col-span-full">
+                        <label for="description" class="block text-sm font-medium text-brand-muted mb-2">Event Description</label>
+                        <textarea id="description" name="description" rows="6" required class="w-full bg-brand-bg border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all resize-none">{{ event.description }}</textarea>
+                    </div>
+                    
+                    <div class="col-span-full">
+                        <label class="block text-sm font-medium text-brand-muted mb-2">Update Poster (Optional)</label>
+                        <div class="flex justify-center px-6 pt-10 pb-12 border-2 border-white/10 border-dashed rounded-2xl bg-brand-bg hover:bg-white/[0.02] transition-colors group cursor-pointer relative" id="dropzone">
+                            <input id="poster" name="poster" type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" onchange="previewImage(this)">
+                            <div class="space-y-2 text-center" id="upload-content">
+                                <div class="w-16 h-16 bg-brand-card rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5 group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-brand-accent"></i>
+                                </div>
+                                <div class="text-sm text-white font-medium">
+                                    <span>Click to upload new poster</span>
+                                </div>
+                                <p class="text-xs text-brand-muted">Leave blank to keep current</p>
+                            </div>
+                            <img id="image-preview" class="hidden absolute inset-0 w-full h-full object-contain rounded-xl z-10 pointer-events-none p-2">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="px-8 py-6 bg-brand-bg border-t border-white/5 flex items-center justify-end gap-4">
+                <a href="{{ url_for('events.detail', event_id=event.id) }}" class="px-6 py-3 rounded-xl font-medium text-white hover:bg-white/10 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-8 py-3 rounded-xl font-bold text-white bg-brand-accent hover:bg-indigo-500 shadow-lg shadow-brand-accent/20 hover:-translate-y-0.5 transition-all">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('upload-content').classList.add('hidden');
+                document.getElementById('image-preview').classList.remove('hidden');
+                document.getElementById('image-preview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}
