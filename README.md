@@ -7,7 +7,6 @@
 
 **EventSphere** is a premium, high-performance event discovery and management ecosystem. Designed for the modern era, it combines a stunning glassmorphic UI with robust backend architecture to deliver a seamless experience for organizers and attendees alike.
 
-![EventSphere Dashboard](./assets/dashboard_mockup.png)
 
 ---
 
